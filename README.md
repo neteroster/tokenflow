@@ -9,8 +9,10 @@ The design goal of TokenFlow is to implement a task framework for applications s
 
 ```python
 from typing import Any
-import openai
+import asyncio
 import logging
+
+import openai
 from tokenflow import TokenFlowTask, TokenFlowRequestTrajectory, ActionDone, ActionContinue, TokenFlowAction
 
 logging.basicConfig(level=logging.DEBUG)
@@ -57,6 +59,5 @@ async def main():
     print("All done")
 
 if __name__ == "__main__":
-    import asyncio
     asyncio.run(main())
 ```
