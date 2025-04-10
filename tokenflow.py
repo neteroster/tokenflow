@@ -222,6 +222,7 @@ class TokenFlowTask:
                         self.workers = []
                         self.finish_event.set()
                         logger.debug("All tasks finished.")
+                        break
                 case None:
                     self.todo_tasks.append(req)
                 case _:
