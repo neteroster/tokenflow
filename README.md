@@ -22,7 +22,7 @@ client = openai.AsyncOpenAI()
 async def handler(request_trajectory: TokenFlowRequestTrajectory) -> tuple[TokenFlowAction, Any]:
     if request_trajectory.length() >= 3:
         print("Too much retry, stop")
-        return ActionDone(), "Too much retry, stop"
+        return ActionDone(), "Too much retry, stop", None
     
     params = request_trajectory.last().request_params
     
@@ -36,10 +36,10 @@ async def handler(request_trajectory: TokenFlowRequestTrajectory) -> tuple[Token
 
         result = response.choices[0].message.content
 
-        return ActionDone(), result
+        return ActionDone(), result, None
     
     except Exception as e:
-        return ActionContinue(params), str(e)
+        return ActionContinue(params), str(e), None
     
 async def main():
     params = [f"say {i}" for i in range(50)]
@@ -79,7 +79,7 @@ client = openai.AsyncOpenAI()
 async def handler(request_trajectory: TokenFlowRequestTrajectory) -> tuple[TokenFlowAction, Any]:
     if request_trajectory.length() >= 3:
         print("Too much retry, stop")
-        return ActionDone(), "Too much retry, stop"
+        return ActionDone(), "Too much retry, stop", None
     
     params = request_trajectory.last().request_params
     
@@ -93,10 +93,10 @@ async def handler(request_trajectory: TokenFlowRequestTrajectory) -> tuple[Token
 
         result = response.choices[0].message.content
 
-        return ActionDone(), result
+        return ActionDone(), result, None
     
     except Exception as e:
-        return ActionContinue(params), str(e)
+        return ActionContinue(params), str(e), None
     
 async def main():
     params = [f"say {i}" for i in range(50)]
@@ -128,6 +128,73 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
+### Progress Bar
+
+You need have `tqdm` installed first.
+
+```python
+import logging
+import asyncio
+from typing import Any
+import openai
+from tokenflow import TokenFlowTask, TokenFlowRequestTrajectory, ActionDone, ActionContinue, TokenFlowAction, TokenFlowEvent, TokenFlowDoneEvent, TokenFlowContinueEvent
+from tqdm import tqdm
+
+client = openai.AsyncOpenAI()
+
+async def handler(request_trajectory: TokenFlowRequestTrajectory) -> tuple[TokenFlowAction, Any]:
+    if request_trajectory.length() >= 3:
+        print("Too much retry, stop")
+        return ActionDone(), "Too much retry, stop", None
+    
+    params = request_trajectory.last().request_params
+    
+    try:
+        response = await client.chat.completions.create(
+            messages=[{"role": "user", "content": params}],
+            model="gemini-2.0-flash",
+            temperature=0.1,
+            max_tokens=4,
+        )
+
+        result = response.choices[0].message.content
+
+        return ActionDone(), result, None
+    
+    except Exception as e:
+        return ActionContinue(params), str(e), None
+    
+async def main():
+    params = [f"say {i}" for i in range(50)]
+
+    pbar = tqdm(total=len(params), desc="Processing", unit="request")
+
+    def event_callback(event: TokenFlowEvent) -> None:
+        match event:
+            case TokenFlowDoneEvent():
+                pbar.update(1)
+            case TokenFlowContinueEvent():
+                print(f"Continue: {event.request_trajectory.last().request_params}")
+
+    tf_task = TokenFlowTask(
+        request_fn=handler,
+        request_params=params,
+        event_callback=event_callback,
+    )
+
+    tf_task.run(n_workers=2)
+
+    result = await tf_task.wait_for_done()
+
+    str_result = [r.request_trajectory.last().result for r in result]
+    print(str_result)
+
+    print("All done")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
 ## TODO
-- [ ] Statistics
+- [x] Statistics
 - [ ] Progress persistence (eg. save to file)
