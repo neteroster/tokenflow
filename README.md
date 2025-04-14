@@ -197,4 +197,5 @@ if __name__ == "__main__":
 
 ## TODO
 - [x] Statistics
+- [ ] Re-considered event system, maybe async callback, and `create_task(callback())` to avoid blocking.
 - [ ] Progress persistence (eg. save to file)
