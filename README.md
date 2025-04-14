@@ -3,6 +3,14 @@ TokenFlow is designed for reliable large-scale concurrent network requests, espe
 
 The design goal of TokenFlow is to implement a task framework for applications such as large-scale language model data synthesis in a sufficiently concise manner, while being flexible and incorporating robust error handling, statistical information, pause and checkpoint resumption, progress persistence, and other functionalities. The entire module of TokenFlow is contained within a single Python file, making it easy for users to integrate into their projects.
 
+## Features
+
+### High Performance
+
+Generate 1 million token in seconds (demo: gpt-4o-mini):
+
+https://github.com/user-attachments/assets/15341945-ca8d-4ef6-bac8-1613c894eb03
+
 ## Usage Examples
 
 ### Simple Task
